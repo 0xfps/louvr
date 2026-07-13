@@ -7,20 +7,23 @@ import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import { Ownable2Step, Ownable } from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
 contract Louvr is ERC721, Ownable2Step {
-    string internal BASE_URI;
-
     ILouvrWhitelist public louvrWhitelist;
 
-    uint256 public totalMinted;
-    uint256 public maxMintId = 2026;
+    uint16 public totalMinted;
+    uint16 public maxMintId = 2026;
     address public louvrTreasury;
+    bool public canListOnSecondaryMarket;
+
+    string internal BASE_URI;
 
     mapping(address user => uint256 numberMinted) public mintCount;
 
-    error NFT0Inexistent();
+    error BaseURIAlreadySet();
+    error CannotListOnSecondaryMarketYet();
+    error CurrentTierNotMinting();
     error MintIdAboveLimit(uint256 id);
-    error MintLimitExceeded(uint256 mintLimit);
-    error NFTReserved(uint256 id);
+    error MintLimitReached(uint256 mintLimit);
+    error NFT0Inexistent();
     error RefundFailed(address to, uint256 refund);
     error TreasuryFundFailed();
 
@@ -28,11 +31,10 @@ contract Louvr is ERC721, Ownable2Step {
 
     constructor(
         string memory name, string memory symbol,
-        string memory baseURI, address _louvrTreasury,
-        address _louvrWhitelist, address owner
+        address _louvrTreasury, address _louvrWhitelist,
+        address owner
     ) ERC721 (name, symbol)
       Ownable (owner) {
-        BASE_URI = baseURI;
         louvrTreasury = _louvrTreasury;
         louvrWhitelist = ILouvrWhitelist(_louvrWhitelist);
     }
@@ -43,14 +45,15 @@ contract Louvr is ERC721, Ownable2Step {
         // Verify that the id stays between 1 and 2026.
         if (id > maxMintId) revert MintIdAboveLimit(id);
 
-        // Verify that you're not minting more than your limit.
-        // Public 1, FCFS 2, GTD 5.
-        Tiers tier = louvrWhitelist.whitelistTiers(msg.sender);
-        uint8 limit = louvrWhitelist.getTierMintLimit(tier);
-        if (mintCount[msg.sender] >= limit) revert MintLimitExceeded(limit);
+        // Verify if user's tier are the ones currently minting.
+        if (!louvrWhitelist.usersTierCurrentlyMinting(msg.sender)) revert CurrentTierNotMinting();
 
-        // Some NFTs are reserved. Verify user can mint this one.
-        if (!louvrWhitelist.userCanMintThis(msg.sender, id)) revert NFTReserved(id);
+        // Get minter whitelist tier.
+        Tiers tier = louvrWhitelist.whitelistTiers(msg.sender);
+        // Verify that you're not minting more than your limit.
+        // Public 2,026, FCFS 2, GTD 2.
+        uint16 limit = louvrWhitelist.getTierMintLimit(tier);
+        if (mintCount[msg.sender] >= limit) revert MintLimitReached(limit);
 
         // Get NFT mint price to pay in ETH.
         uint256 mintPriceETH = louvrWhitelist.getWhiteListPrice(msg.sender);
@@ -71,7 +74,21 @@ contract Louvr is ERC721, Ownable2Step {
         ++mintCount[msg.sender];
 
         // Mint NFT.
-        _mint(receiver, id);
+        _safeMint(receiver, id);
+    }
+
+    function transferFrom(address from, address to, uint256 tokenId) public override {
+        if (!canListOnSecondaryMarket) revert CannotListOnSecondaryMarketYet();
+        super.transferFrom(from, to, tokenId);
+    }
+
+    function turnOnSecondaryMarket() public onlyOwner {
+        canListOnSecondaryMarket = true;
+    }
+
+    function setBaseUri(string memory baseURI) public onlyOwner {
+        if (bytes(BASE_URI).length != 0) revert BaseURIAlreadySet();
+        BASE_URI = baseURI;
     }
 
     function _baseURI() internal view override returns (string memory) {

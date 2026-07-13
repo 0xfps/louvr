@@ -4,7 +4,8 @@ pragma solidity ^0.8.19;
 enum Tiers {
     PUBLIC,
     FIRST_COME_FIRST_SERVE,
-    GUARANTEED
+    GUARANTEED,
+    NONE
 }
 
 interface ILouvrWhitelist {
@@ -13,9 +14,9 @@ interface ILouvrWhitelist {
         Tiers tier;
     }
 
-    function getTierMintLimit(Tiers tier) external pure returns (uint8 limit);
+    function getTierMintLimit(Tiers tier) external view returns (uint16 limit);
     
     function whitelistTiers(address whitelistedUser) external view returns (Tiers tiers);
     function getWhiteListPrice(address whitelistedUser) external view returns (uint256 price);
-    function userCanMintThis(address whitelistedUser, uint256 id) external view returns (bool);
+    function usersTierCurrentlyMinting(address whitelistedUser) external view returns (bool);
 }
