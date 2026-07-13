@@ -4,7 +4,6 @@ pragma solidity ^0.8.19;
 import { Tiers, ILouvrWhitelist } from "../contracts/interfaces/ILouvrWhitelist.sol";
 
 import { Addresses } from "./utils/Addresses.sol";
-import { console } from "forge-std/console.sol";
 import { Louvr } from "../contracts/Louvr.sol";
 import { LouvrTreasury } from "../contracts/LouvrTreasury.sol";
 import { LouvrWhitelist } from "../contracts/LouvrWhitelist.sol";
