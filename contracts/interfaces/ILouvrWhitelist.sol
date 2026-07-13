@@ -14,9 +14,9 @@ interface ILouvrWhitelist {
         Tiers tier;
     }
 
-    function getTierMintLimit(Tiers tier) external view returns (uint16 limit);
+    function getTierMintLimit(Tiers tier) external view returns (uint16);
     
     function whitelistTiers(address whitelistedUser) external view returns (Tiers tiers);
-    function getWhiteListPrice(address whitelistedUser) external view returns (uint256 price);
+    function getWhiteListPrice(address whitelistedUser) external view returns (uint256);
     function usersTierCurrentlyMinting(address whitelistedUser) external view returns (bool);
 }

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.19;
 
-import { Addresses} from "../utils/Addresses.sol";
-import { LouvrTreasury } from "../../contracts/LouvrTreasury.sol";
-import { NonReceivingContract} from "../utils/NonReceivingContract.sol";
+import { Addresses} from "./utils/Addresses.sol";
+import { LouvrTreasury } from "../contracts/LouvrTreasury.sol";
+import { NonReceivingContract} from "./utils/NonReceivingContract.sol";
 
 contract LouvrTreasuryTest is Addresses {
     LouvrTreasury internal treasury;

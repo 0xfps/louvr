@@ -19,10 +19,42 @@ contract LouvrWhitelist is ILouvrWhitelist, Ownable2Step {
     Tiers public currentTier = Tiers.NONE;
 
     constructor(WhiteListConfig[] memory config, address owner) Ownable (owner) {
-        whitelist(config);
+        _whitelist(config);
     }
 
     function whitelist(WhiteListConfig[] memory config) public onlyOwner {
+        _whitelist(config);
+    }
+
+    function getWhiteListPrice(address whitelistedUser) public view returns (uint256 price) {
+        Tiers whitelistedUserTier = whitelistTiers[whitelistedUser];
+
+        if (whitelistedUserTier == Tiers.PUBLIC) return PUBLIC_PRICE;
+        if (whitelistedUserTier == Tiers.FIRST_COME_FIRST_SERVE) return FIRST_COME_FIRST_SERVE_PRICE;
+        if (whitelistedUserTier == Tiers.GUARANTEED) return GUARANTEED_PRICE;
+        return type(uint256).max;
+    }
+
+    function setNewTier(Tiers tier) public onlyOwner {
+        currentTier = tier;
+    }
+
+    function getTierMintLimit(Tiers tier) public view returns (uint16) {
+        // If public mint is on, return max limit, if not, check for category limit.
+        if (currentTier == Tiers.PUBLIC) return PUBLIC_MINT_LIMIT;
+
+        if (tier == Tiers.PUBLIC) return PUBLIC_MINT_LIMIT;
+        if (tier == Tiers.FIRST_COME_FIRST_SERVE) return FIRST_COME_FIRST_SERVE_MINT_LIMIT;
+        if (tier == Tiers.GUARANTEED) return GUARANTEED_MINT_LIMIT;
+        else return 0;
+    }
+
+    function usersTierCurrentlyMinting(address whitelistedUser) public view returns (bool) {
+        // If public mint is on, all can mint, if not, check for eligibility.
+        return (currentTier == Tiers.PUBLIC) || whitelistTiers[whitelistedUser] == currentTier;
+    }
+
+    function _whitelist(WhiteListConfig[] memory config) internal {
         uint256 length = config.length;
 
         for (uint256 i; i < length; ++i) {
@@ -32,33 +64,5 @@ contract LouvrWhitelist is ILouvrWhitelist, Ownable2Step {
             if (whitelistTiers[user] == Tiers.PUBLIC)
                 whitelistTiers[user] = tier;
         }
-    }
-
-    function getWhiteListPrice(address whitelistedUser) public view returns (uint256 price) {
-        Tiers whitelistedUserTier = whitelistTiers[whitelistedUser];
-
-        if (whitelistedUserTier == Tiers.PUBLIC) price = PUBLIC_PRICE;
-        if (whitelistedUserTier == Tiers.FIRST_COME_FIRST_SERVE) price = FIRST_COME_FIRST_SERVE_PRICE;
-        if (whitelistedUserTier == Tiers.GUARANTEED) price = GUARANTEED_PRICE;
-        price = type(uint256).max;
-    }
-
-    function setNewTier(Tiers tier) public onlyOwner {
-        currentTier = tier;
-    }
-
-    function getTierMintLimit(Tiers tier) public view returns (uint16 limit) {
-        // If public mint is on, return max limit, if not, check for category limit.
-        if (currentTier == Tiers.PUBLIC) limit = PUBLIC_MINT_LIMIT;
-
-        if (tier == Tiers.PUBLIC) limit = PUBLIC_MINT_LIMIT;
-        if (tier == Tiers.FIRST_COME_FIRST_SERVE) limit = FIRST_COME_FIRST_SERVE_MINT_LIMIT;
-        if (tier == Tiers.GUARANTEED) limit = GUARANTEED_MINT_LIMIT;
-        else limit = 0;
-    }
-
-    function usersTierCurrentlyMinting(address whitelistedUser) public view returns (bool) {
-        // If public mint is on, all can mint, if not, check for eligibility.
-        return (currentTier == Tiers.PUBLIC) || whitelistTiers[whitelistedUser] == currentTier;
     }
 }

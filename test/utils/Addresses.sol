@@ -11,9 +11,11 @@ contract Addresses is Test {
 
     address goodGuy1 = vm.addr(0x04);
     address goodGuy2 = vm.addr(0x05);
+    address goodGuy3 = vm.addr(0x06);
+    address goodGuy4 = vm.addr(0x07);
 
-    address receiver1 = vm.addr(0x06);
-    address receiver2 = vm.addr(0x07);
+    address receiver1 = vm.addr(0x08);
+    address receiver2 = vm.addr(0x09);
 
     constructor() {
         vm.deal(owner, 1 ether);
