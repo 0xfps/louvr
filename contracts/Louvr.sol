@@ -16,7 +16,7 @@ contract Louvr is ERC721, Ownable2Step {
 
     string internal BASE_URI;
 
-    mapping(address user => uint256 numberMinted) public mintCount;
+    mapping(address user => uint16 numberMinted) public mintCount;
 
     error BaseURIAlreadySet();
     error CannotListOnSecondaryMarketYet();
