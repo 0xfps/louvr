@@ -27,5 +27,27 @@ export default defineConfig({
       apiKey: process.env.ETHERSCAN_API_KEY,
     },
   },
+  chainDescriptors: {
+    46630: {
+      name: "robinhoodTestnet",
+      blockExplorers: {
+        blockscout: {
+          name: "Robinhood Chain Testnet Explorer",
+          url: "https://explorer.testnet.chain.robinhood.com/",
+          apiUrl: "https://explorer.testnet.chain.robinhood.com/api"
+        }
+      }
+    },
+    4663: {
+      name: "robinhoodMainnet",
+      blockExplorers: {
+        blockscout: {
+          name: "Robinhood Chain Explorer",
+          url: "https://robinhoodchain.blockscout.com/",
+          apiUrl: "https://robinhoodchain.blockscout.com/api"
+        }
+      },
+    }
+  },
   plugins: [hardhatFoundry, hardhatIgnitionViemPlugin, hardhatVerify]
 });
