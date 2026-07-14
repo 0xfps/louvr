@@ -4,10 +4,15 @@ pragma solidity ^0.8.19;
 import { Tiers, ILouvrWhitelist } from "./interfaces/ILouvrWhitelist.sol";
 
 import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import { Ownable2Step, Ownable } from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
-contract Louvr is ERC721, Ownable2Step {
+contract Louvr is ERC721, Ownable {
     ILouvrWhitelist public louvrWhitelist;
+
+    struct PreMintConfig {
+        address teamMember;
+        uint16 id;
+    }
 
     uint16 public totalMinted;
     uint16 public maxMintId = 2026;
@@ -32,11 +37,16 @@ contract Louvr is ERC721, Ownable2Step {
     constructor(
         string memory name, string memory symbol,
         address _louvrTreasury, address _louvrWhitelist,
-        address owner
+        address owner, PreMintConfig[] memory config
     ) ERC721 (name, symbol)
       Ownable (owner) {
         louvrTreasury = _louvrTreasury;
         louvrWhitelist = ILouvrWhitelist(_louvrWhitelist);
+
+        uint8 length = uint8(config.length);
+        for (uint8 i; i < length; ++i) {
+            _safeMint(config[i].teamMember, config[i].id);
+        }
     }
 
     function mint(uint256 id, address receiver) public payable {

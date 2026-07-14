@@ -3,9 +3,9 @@ pragma solidity ^0.8.19;
 
 import { Tiers, ILouvrWhitelist } from "./interfaces/ILouvrWhitelist.sol";
 
-import { Ownable2Step, Ownable } from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
-contract LouvrWhitelist is ILouvrWhitelist, Ownable2Step {
+contract LouvrWhitelist is ILouvrWhitelist, Ownable {
     mapping(address whitelistedUser => Tiers tier) public whitelistTiers;
 
     uint256 public constant PUBLIC_PRICE = 0.007 ether;

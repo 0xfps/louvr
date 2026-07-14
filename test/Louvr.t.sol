@@ -13,6 +13,7 @@ contract LouvrTest is Addresses {
     LouvrTreasury internal treasury;
     LouvrWhitelist internal whitelist;
     ILouvrWhitelist.WhiteListConfig[] internal config;
+    Louvr.PreMintConfig[] internal preMintConfig;
     
     modifier startGtdMint {
         vm.prank(owner);
@@ -39,14 +40,18 @@ contract LouvrTest is Addresses {
         config.push(ILouvrWhitelist.WhiteListConfig(goodGuy1, Tiers.PUBLIC));
         config.push(ILouvrWhitelist.WhiteListConfig(goodGuy2, Tiers.GUARANTEED));
         config.push(ILouvrWhitelist.WhiteListConfig(goodGuy3, Tiers.FIRST_COME_FIRST_SERVE));
+
+        preMintConfig.push(Louvr.PreMintConfig(goodGuy4, 14));
+
         treasury = new LouvrTreasury(owner);
         whitelist = new LouvrWhitelist(config, owner);
-        louvr = new Louvr("Louvr", "Louvr", address(treasury), address(whitelist), owner);
+        louvr = new Louvr("Louvr", "Louvr", address(treasury), address(whitelist), owner, preMintConfig);
     }
 
     function testDeployments() public view {
         assert(louvr.louvrTreasury() == address(treasury));
         assert(louvr.louvrWhitelist() == whitelist);
+        assert(louvr.ownerOf(14) == goodGuy4);
     }
 
     function testSetBaseUriByNonOwner() public {

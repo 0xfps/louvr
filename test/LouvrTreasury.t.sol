@@ -2,12 +2,17 @@
 pragma solidity ^0.8.19;
 
 import { Addresses} from "./utils/Addresses.sol";
+import { console } from "forge-std/console.sol";
 import { LouvrTreasury } from "../contracts/LouvrTreasury.sol";
-import { NonReceivingContract} from "./utils/NonReceivingContract.sol";
+import { NonReceivingContract } from "./utils/NonReceivingContract.sol";
+import { NonTransferrableToken } from "./utils/NonTransferrableToken.sol";
+import { TransferrableToken } from "./utils/TransferrableToken.sol";
 
 contract LouvrTreasuryTest is Addresses {
     LouvrTreasury internal treasury;
     NonReceivingContract internal nrc;
+    NonTransferrableToken internal ntt;
+    TransferrableToken internal tt;
 
     modifier fund() {
         vm.prank(goodGuy2);
@@ -20,6 +25,8 @@ contract LouvrTreasuryTest is Addresses {
     constructor() {
         treasury = new LouvrTreasury(owner);
         nrc = new NonReceivingContract();
+        ntt = new NonTransferrableToken(address(treasury));
+        tt = new TransferrableToken(address(treasury));
     }
 
     function testInitialBalance() public view {
@@ -59,5 +66,31 @@ contract LouvrTreasuryTest is Addresses {
         vm.stopPrank();
 
         assert(address(receiver1).balance == address(treasury).balance);
+    }
+
+    function testTransferER20ByNonOwner() public {
+        uint256 balance = tt.balanceOf(address(treasury));
+
+        vm.startPrank(badGuy2);
+        vm.expectRevert();
+        treasury.transferERC20(address(tt), receiver1, balance);
+        vm.stopPrank();
+    }
+
+    function testTransferER20ByOwnerToFalseReturningContract() public {
+        uint256 balance = tt.balanceOf(address(treasury));
+
+        vm.startPrank(owner);
+        vm.expectRevert();
+        treasury.transferERC20(address(ntt), receiver1, balance);
+        vm.stopPrank();
+    }
+
+    function testTransferER20ByOwnerToTrueReturningContract() public {
+        uint256 balance = tt.balanceOf(address(treasury));
+
+        vm.startPrank(owner);
+        treasury.transferERC20(address(tt), receiver1, balance);
+        vm.stopPrank();
     }
 }
