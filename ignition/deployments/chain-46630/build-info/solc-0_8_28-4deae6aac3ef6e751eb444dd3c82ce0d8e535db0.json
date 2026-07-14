@@ -1,0 +1,63 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-4deae6aac3ef6e751eb444dd3c82ce0d8e535db0",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "compilerType": "solc",
+  "toolVersions": {
+    "hardhat": "3.9.1"
+  },
+  "userSourceNameMap": {
+    "contracts/LouvrWhitelist.sol": "project/contracts/LouvrWhitelist.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": [
+        "project/:@openzeppelin/=project/lib/openzeppelin-contracts/"
+      ]
+    },
+    "sources": {
+      "project/contracts/interfaces/ILouvrWhitelist.sol": {
+        "content": "// SPDX-License-Identifier: GPL-3.0\npragma solidity ^0.8.19;\n\nenum Tiers {\n    PUBLIC,\n    FIRST_COME_FIRST_SERVE,\n    GUARANTEED,\n    NONE\n}\n\ninterface ILouvrWhitelist {\n    struct WhiteListConfig {\n        address user;\n        Tiers tier;\n    }\n\n    function getTierMintLimit(Tiers tier) external view returns (uint16);\n    \n    function whitelistTiers(address whitelistedUser) external view returns (Tiers tiers);\n    function getWhiteListPrice(address whitelistedUser) external view returns (uint256);\n    function usersTierCurrentlyMinting(address whitelistedUser) external view returns (bool);\n}"
+      },
+      "project/contracts/LouvrWhitelist.sol": {
+        "content": "// SPDX-License-Identifier: GPL-3.0\npragma solidity ^0.8.19;\n\nimport { Tiers, ILouvrWhitelist } from \"./interfaces/ILouvrWhitelist.sol\";\n\nimport { Ownable } from \"@openzeppelin/contracts/access/Ownable2Step.sol\";\n\ncontract LouvrWhitelist is ILouvrWhitelist, Ownable {\n    mapping(address whitelistedUser => Tiers tier) public whitelistTiers;\n\n    uint256 public constant PUBLIC_PRICE = 0.007 ether;\n    uint256 public constant FIRST_COME_FIRST_SERVE_PRICE = 0.00588 ether;\n    uint256 public constant GUARANTEED_PRICE = 0.0047 ether;\n\n    uint16 public constant PUBLIC_MINT_LIMIT = 2026;\n    uint16 public constant FIRST_COME_FIRST_SERVE_MINT_LIMIT = 2;\n    uint16 public constant GUARANTEED_MINT_LIMIT = 2;\n\n    Tiers public currentTier = Tiers.NONE;\n\n    constructor(WhiteListConfig[] memory config, address owner) Ownable (owner) {\n        _whitelist(config);\n    }\n\n    function whitelist(WhiteListConfig[] memory config) public onlyOwner {\n        _whitelist(config);\n    }\n\n    function getWhiteListPrice(address whitelistedUser) public view returns (uint256 price) {\n        Tiers whitelistedUserTier = whitelistTiers[whitelistedUser];\n\n        if (whitelistedUserTier == Tiers.PUBLIC) return PUBLIC_PRICE;\n        if (whitelistedUserTier == Tiers.FIRST_COME_FIRST_SERVE) return FIRST_COME_FIRST_SERVE_PRICE;\n        if (whitelistedUserTier == Tiers.GUARANTEED) return GUARANTEED_PRICE;\n        return type(uint256).max;\n    }\n\n    function setNewTier(Tiers tier) public onlyOwner {\n        currentTier = tier;\n    }\n\n    function getTierMintLimit(Tiers tier) public view returns (uint16) {\n        // If public mint is on, return max limit, if not, check for category limit.\n        if (currentTier == Tiers.PUBLIC) return PUBLIC_MINT_LIMIT;\n\n        if (tier == Tiers.PUBLIC) return PUBLIC_MINT_LIMIT;\n        if (tier == Tiers.FIRST_COME_FIRST_SERVE) return FIRST_COME_FIRST_SERVE_MINT_LIMIT;\n        if (tier == Tiers.GUARANTEED) return GUARANTEED_MINT_LIMIT;\n        else return 0;\n    }\n\n    function usersTierCurrentlyMinting(address whitelistedUser) public view returns (bool) {\n        // If public mint is on, all can mint, if not, check for eligibility.\n        return (currentTier == Tiers.PUBLIC) || whitelistTiers[whitelistedUser] == currentTier;\n    }\n\n    function _whitelist(WhiteListConfig[] memory config) internal {\n        uint256 length = config.length;\n\n        for (uint256 i; i < length; ++i) {\n            address user = config[i].user;\n            Tiers tier = config[i].tier;\n\n            if (whitelistTiers[user] == Tiers.PUBLIC)\n                whitelistTiers[user] = tier;\n        }\n    }\n}"
+      },
+      "project/lib/openzeppelin-contracts/contracts/access/Ownable.sol": {
+        "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.0.0) (access/Ownable.sol)\n\npragma solidity ^0.8.20;\n\nimport {Context} from \"../utils/Context.sol\";\n\n/**\n * @dev Contract module which provides a basic access control mechanism, where\n * there is an account (an owner) that can be granted exclusive access to\n * specific functions.\n *\n * The initial owner is set to the address provided by the deployer. This can\n * later be changed with {transferOwnership}.\n *\n * This module is used through inheritance. It will make available the modifier\n * `onlyOwner`, which can be applied to your functions to restrict their use to\n * the owner.\n */\nabstract contract Ownable is Context {\n    address private _owner;\n\n    /**\n     * @dev The caller account is not authorized to perform an operation.\n     */\n    error OwnableUnauthorizedAccount(address account);\n\n    /**\n     * @dev The owner is not a valid owner account. (eg. `address(0)`)\n     */\n    error OwnableInvalidOwner(address owner);\n\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\n\n    /**\n     * @dev Initializes the contract setting the address provided by the deployer as the initial owner.\n     */\n    constructor(address initialOwner) {\n        if (initialOwner == address(0)) {\n            revert OwnableInvalidOwner(address(0));\n        }\n        _transferOwnership(initialOwner);\n    }\n\n    /**\n     * @dev Throws if called by any account other than the owner.\n     */\n    modifier onlyOwner() {\n        _checkOwner();\n        _;\n    }\n\n    /**\n     * @dev Returns the address of the current owner.\n     */\n    function owner() public view virtual returns (address) {\n        return _owner;\n    }\n\n    /**\n     * @dev Throws if the sender is not the owner.\n     */\n    function _checkOwner() internal view virtual {\n        if (owner() != _msgSender()) {\n            revert OwnableUnauthorizedAccount(_msgSender());\n        }\n    }\n\n    /**\n     * @dev Leaves the contract without owner. It will not be possible to call\n     * `onlyOwner` functions. Can only be called by the current owner.\n     *\n     * NOTE: Renouncing ownership will leave the contract without an owner,\n     * thereby disabling any functionality that is only available to the owner.\n     */\n    function renounceOwnership() public virtual onlyOwner {\n        _transferOwnership(address(0));\n    }\n\n    /**\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\n     * Can only be called by the current owner.\n     */\n    function transferOwnership(address newOwner) public virtual onlyOwner {\n        if (newOwner == address(0)) {\n            revert OwnableInvalidOwner(address(0));\n        }\n        _transferOwnership(newOwner);\n    }\n\n    /**\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\n     * Internal function without access restriction.\n     */\n    function _transferOwnership(address newOwner) internal virtual {\n        address oldOwner = _owner;\n        _owner = newOwner;\n        emit OwnershipTransferred(oldOwner, newOwner);\n    }\n}\n"
+      },
+      "project/lib/openzeppelin-contracts/contracts/access/Ownable2Step.sol": {
+        "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.1.0) (access/Ownable2Step.sol)\n\npragma solidity ^0.8.20;\n\nimport {Ownable} from \"./Ownable.sol\";\n\n/**\n * @dev Contract module which provides access control mechanism, where\n * there is an account (an owner) that can be granted exclusive access to\n * specific functions.\n *\n * This extension of the {Ownable} contract includes a two-step mechanism to transfer\n * ownership, where the new owner must call {acceptOwnership} in order to replace the\n * old one. This can help prevent common mistakes, such as transfers of ownership to\n * incorrect accounts, or to contracts that are unable to interact with the\n * permission system.\n *\n * The initial owner is specified at deployment time in the constructor for `Ownable`. This\n * can later be changed with {transferOwnership} and {acceptOwnership}.\n *\n * This module is used through inheritance. It will make available all functions\n * from parent (Ownable).\n */\nabstract contract Ownable2Step is Ownable {\n    address private _pendingOwner;\n\n    event OwnershipTransferStarted(address indexed previousOwner, address indexed newOwner);\n\n    /**\n     * @dev Returns the address of the pending owner.\n     */\n    function pendingOwner() public view virtual returns (address) {\n        return _pendingOwner;\n    }\n\n    /**\n     * @dev Starts the ownership transfer of the contract to a new account. Replaces the pending transfer if there is one.\n     * Can only be called by the current owner.\n     *\n     * Setting `newOwner` to the zero address is allowed; this can be used to cancel an initiated ownership transfer.\n     */\n    function transferOwnership(address newOwner) public virtual override onlyOwner {\n        _pendingOwner = newOwner;\n        emit OwnershipTransferStarted(owner(), newOwner);\n    }\n\n    /**\n     * @dev Transfers ownership of the contract to a new account (`newOwner`) and deletes any pending owner.\n     * Internal function without access restriction.\n     */\n    function _transferOwnership(address newOwner) internal virtual override {\n        delete _pendingOwner;\n        super._transferOwnership(newOwner);\n    }\n\n    /**\n     * @dev The new owner accepts the ownership transfer.\n     */\n    function acceptOwnership() public virtual {\n        address sender = _msgSender();\n        if (pendingOwner() != sender) {\n            revert OwnableUnauthorizedAccount(sender);\n        }\n        _transferOwnership(sender);\n    }\n}\n"
+      },
+      "project/lib/openzeppelin-contracts/contracts/utils/Context.sol": {
+        "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.0.1) (utils/Context.sol)\n\npragma solidity ^0.8.20;\n\n/**\n * @dev Provides information about the current execution context, including the\n * sender of the transaction and its data. While these are generally available\n * via msg.sender and msg.data, they should not be accessed in such a direct\n * manner, since when dealing with meta-transactions the account sending and\n * paying for execution may not be the actual sender (as far as an application\n * is concerned).\n *\n * This contract is only required for intermediate, library-like contracts.\n */\nabstract contract Context {\n    function _msgSender() internal view virtual returns (address) {\n        return msg.sender;\n    }\n\n    function _msgData() internal view virtual returns (bytes calldata) {\n        return msg.data;\n    }\n\n    function _contextSuffixLength() internal view virtual returns (uint256) {\n        return 0;\n    }\n}\n"
+      }
+    }
+  }
+}

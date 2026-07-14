@@ -4,12 +4,16 @@
   "type": "module",
   "devDependencies": {
     "@nomicfoundation/hardhat-foundry": "^3.0.4",
+    "@nomicfoundation/hardhat-ignition-viem": "^3.1.6",
+    "@nomicfoundation/hardhat-verify": "^3.0.21",
     "@types/node": "^22.20.1",
     "hardhat": "^3.9.1",
     "typescript": "~6.0.3"
   },
   "dependencies": {
+    "@nomicfoundation/hardhat-ignition": "^3.1.8",
     "csv-parser": "^3.2.1",
+    "ethers": "^6.17.0",
     "fs": "^0.0.1-security",
     "path": "^0.12.7",
     "pinata": "^2.5.6"
