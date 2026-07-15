@@ -12,7 +12,7 @@ enum Tiers {
 }
 
 async function setTier() {
-    const url = `https://robinhood-testnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY!}`
+    const url = `https://robinhood-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY!}`
     const whitelistAddress = "0x4734C638b9443507947872e369cb6D8D5030A1eb"
 
     let wallet = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY!)
@@ -24,9 +24,10 @@ async function setTier() {
     let tx
     const mutex = new Mutex()
     await mutex.runExclusive(async function () {
-        tx = await LouvrWhitelist.setTier(Tiers.GUARANTEED)
-        // tx = await LouvrWhitelist.setTier(Tiers.FIRST_COME_FIRST_SERVE)
-        // tx = await LouvrWhitelist.setTier(Tiers.PUBLIC)
+        tx = await LouvrWhitelist.setNewTier(Tiers.NONE)
+        // tx = await LouvrWhitelist.setNewTier(Tiers.GUARANTEED)
+        // tx = await LouvrWhitelist.setNewTier(Tiers.FIRST_COME_FIRST_SERVE)
+        // tx = await LouvrWhitelist.setNewTier(Tiers.PUBLIC)
         await tx.wait()
         console.log({ tx })
     })
