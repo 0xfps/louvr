@@ -32,3 +32,6 @@
 
 /out
 /assets
+wallets.json
+ipfs.json
+ipfs-*.json

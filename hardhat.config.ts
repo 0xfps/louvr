@@ -33,7 +33,7 @@ export default defineConfig({
       blockExplorers: {
         blockscout: {
           name: "Robinhood Chain Testnet Explorer",
-          url: "https://explorer.testnet.chain.robinhood.com/",
+          url: "https://explorer.testnet.chain.robinhood.com",
           apiUrl: "https://explorer.testnet.chain.robinhood.com/api"
         }
       }
@@ -43,7 +43,7 @@ export default defineConfig({
       blockExplorers: {
         blockscout: {
           name: "Robinhood Chain Explorer",
-          url: "https://robinhoodchain.blockscout.com/",
+          url: "https://robinhoodchain.blockscout.com",
           apiUrl: "https://robinhoodchain.blockscout.com/api"
         }
       },

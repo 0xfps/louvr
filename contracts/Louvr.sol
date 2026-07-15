@@ -20,6 +20,7 @@ contract Louvr is ERC721, Ownable {
     bool public canListOnSecondaryMarket;
 
     string internal BASE_URI;
+    string public extension = ".json";
 
     mapping(address user => uint16 numberMinted) public mintCount;
 
@@ -103,5 +104,13 @@ contract Louvr is ERC721, Ownable {
 
     function _baseURI() internal view override returns (string memory) {
         return BASE_URI;
+    }
+
+    function setExtension(string memory _extension) public onlyOwner {
+        extension = _extension;
+    }
+
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        return string(abi.encodePacked(super.tokenURI(tokenId), extension));
     }
 }

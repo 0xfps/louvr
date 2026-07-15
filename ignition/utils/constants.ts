@@ -1,7 +1,7 @@
 enum Tiers {
     PUBLIC,
-    GUARANTEED,
     FIRST_COME_FIRST_SERVE,
+    GUARANTEED,
     NONE
 }
 
@@ -15,7 +15,8 @@ export type PreMintConfig = {
     id: number
 }
 
-export const OWNER = "0x69F86467Abf580896faB8eFC73b2BC74aF18b8D4"
+// export const OWNER = "0x69F86467Abf580896faB8eFC73b2BC74aF18b8D4" // Tesnet.
+export const OWNER = "0xb09c96e046863Bf80292cb761aC6e6B967a71CdD" // Mainnet.
 export const WHITELIST_CONFIG: WhitelistConfig[] = [{
     user: "0x5e078E6b545cF88aBD5BB58d27488eF8BE0D2593",
     tier: Tiers.GUARANTEED
